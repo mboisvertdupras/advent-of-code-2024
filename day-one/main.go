@@ -3,63 +3,135 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
 )
 
-func readInput() ([]int, []int, error) {
-	// Create two slices to store the values
-	var firstColumn []int
-	var secondColumn []int
+const inputFile = "input.txt"
 
-	// Open the file
-	file, err := os.Open("input.txt")
+type Columns [][]int
+
+// Validate ensures all columns have the same length
+func (c Columns) Validate() error {
+	if len(c) == 0 {
+		return fmt.Errorf("no columns present")
+	}
+
+	expectedLen := len(c[0])
+	for i := 1; i < len(c); i++ {
+		if len(c[i]) != expectedLen {
+			return fmt.Errorf("column %d has length %d, expected %d",
+				i, len(c[i]), expectedLen)
+		}
+	}
+	return nil
+}
+
+// Sort sorts all columns
+func (c Columns) Sort() {
+	for i := range c {
+		sort.Ints(c[i])
+	}
+}
+
+// Helper function to count lines
+func countLines(filename string) (int, error) {
+	file, err := os.Open(filename)
 	if err != nil {
-		fmt.Println("Error opening file:", err)
-		return firstColumn, secondColumn, err
+		return 0, fmt.Errorf("opening file for counting: %w", err)
 	}
 	defer file.Close()
 
-	// Create a scanner to read the file line by line
+	scanner := bufio.NewScanner(file)
+	lineCount := 0
+	for scanner.Scan() {
+		lineCount++
+	}
+
+	if err := scanner.Err(); err != nil {
+		return 0, fmt.Errorf("counting lines: %w", err)
+	}
+
+	return lineCount, nil
+}
+
+func getDistance(a, b []int) int {
+	totalDistance := 0
+	for i := 0; i < len(a); i++ {
+		totalDistance += int(math.Abs(float64(a[i] - b[i])))
+	}
+	return totalDistance
+}
+
+func readInput() (Columns, error) {
+	// Open the file
+	file, err := os.Open(inputFile)
+	if err != nil {
+		return nil, fmt.Errorf("opening file: %w", err)
+	}
+	defer file.Close()
+
+	// Count lines for pre-allocation
+	lineCount, err := countLines(inputFile)
+	if err != nil {
+		return nil, fmt.Errorf("counting lines: %w", err)
+	}
+
+	// Initialize columns slice with 2 pre-allocated slices
+	cols := make(Columns, 2)
+	for i := range cols {
+		cols[i] = make([]int, 0, lineCount)
+	}
+
+	// Create scanner for reading the file
 	scanner := bufio.NewScanner(file)
 
-	// Read each line
+	// Process each line
 	for scanner.Scan() {
-		// Split the line by whitespace
 		values := strings.Fields(scanner.Text())
 
-		// Convert first value to int and append to first slice
-		if val1, err := strconv.Atoi(values[0]); err == nil {
-			firstColumn = append(firstColumn, val1)
+		if len(values) != 2 {
+			return nil, fmt.Errorf("invalid format: expected 2 values, got %d",
+				len(values))
 		}
 
-		// Convert second value to int and append to second slice
-		if val2, err := strconv.Atoi(values[1]); err == nil {
-			secondColumn = append(secondColumn, val2)
+		// Process each column value
+		for i, val := range values {
+			num, err := strconv.Atoi(val)
+			if err != nil {
+				return nil, fmt.Errorf("invalid number, column %d: %w",
+					i+1, err)
+			}
+			cols[i] = append(cols[i], num)
 		}
 	}
 
 	// Check for scanner errors
 	if err := scanner.Err(); err != nil {
-		fmt.Println("Error reading file:", err)
-		return firstColumn, secondColumn, err
+		return nil, fmt.Errorf("scanning file: %w", err)
 	}
 
-	// Print the results
-	return firstColumn, secondColumn, err
+	// Validate columns have equal length
+	if err := cols.Validate(); err != nil {
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
+	// Sort all columns
+	cols.Sort()
+
+	return cols, nil
 }
 
 func main() {
-	leftColumn, rightColumn, err := readInput()
+	columns, err := readInput()
 	if err != nil {
 		fmt.Println("Error: ", err)
+		os.Exit(1)
 	}
 
-	sort.Ints(leftColumn)
-	sort.Ints(rightColumn)
-
-	fmt.Println("\nSorted first column:", leftColumn)
-	fmt.Println("Sorted second column:", rightColumn)
+	distance := getDistance(columns[0], columns[1])
+	fmt.Printf("Total distance: %d\n", distance)
 }
