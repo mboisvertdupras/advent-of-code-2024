@@ -1,4 +1,4 @@
-package main
+package problem_one
 
 import (
 	"bufio"
@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const inputFile = "input.txt"
+const inputFile = "day-one/input.txt"
 
 type Columns [][]int
 
@@ -125,7 +125,7 @@ func readInput() (Columns, error) {
 	return cols, nil
 }
 
-func main() {
+func Solve() {
 	columns, err := readInput()
 	if err != nil {
 		fmt.Println("Error: ", err)
