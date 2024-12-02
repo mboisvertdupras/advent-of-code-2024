@@ -1,4 +1,4 @@
-package main
+package problem_one
 
 import (
 	"bufio"
@@ -125,7 +125,7 @@ func readInput() (Columns, error) {
 	return cols, nil
 }
 
-func main() {
+func Solve() {
 	columns, err := readInput()
 	if err != nil {
 		fmt.Println("Error: ", err)
