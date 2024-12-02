@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const inputFile = "input.txt"
+const inputFile = "day-one/input.txt"
 
 type Columns [][]int
 
