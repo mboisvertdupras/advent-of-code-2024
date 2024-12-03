@@ -6,16 +6,14 @@ import (
 	"fmt"
 )
 
-type Day struct {
-	Solutions []solution.Solution
-}
-
 func main() {
-	days := Day{
+	days := []solution.Solution{
 		day_one.Solution(),
 	}
 
 	for i, day := range days {
-		fmt.Sprintf("Day %d:\n\nPart One: %v\n\nPart Two: %v", i, day.PartOne, day.PartTwo)
+		fmt.Printf("Day %d:\n", i+1)
+		fmt.Printf("  Part One: %d\n", day.PartOne)
+		fmt.Printf("  Part Two: %d\n\n", day.PartTwo)
 	}
 }
